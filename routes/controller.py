@@ -27,10 +27,16 @@ def get_students(db: Session = Depends(get_db)):
 
 @controller.post(base_url + "students/create")
 def create_student(student: StudentRequest, db: Session = Depends(get_db)):
-    db.add(student)
+    student_db = Student(name=student.name, lastname=student.lastname, age=student.age, email=student.email, tutor_id=student.tutor_id)
+    if student.courses is not None:
+        for id in student.courses:
+            course = db.query(Course).filter(Course.id == id).first()
+            if course is not None:
+                student_db.courses.append(course)
+    db.add(student_db)
     db.commit()
-    db.refresh(student)
-    return student
+    db.refresh(student_db)
+    return student_db
 
 
 @controller.get(base_url + "tutors")
